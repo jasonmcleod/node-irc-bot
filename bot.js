@@ -22,7 +22,7 @@ client.connect(config.user);
 
 
 function sendchat(msg) {
-  client.send()  
+  client.send()
 }
 
 client.addListener('001', function() {
@@ -58,39 +58,39 @@ client.addListener('DISCONNECT', function() {
   }, 5000);
 });
 
-client.addListener('PRIVMSG', function(prefix, channel, text) {  
+client.addListener('PRIVMSG', function(prefix, channel, text) {
   var cmd = text.split(" ",1)[0].toLowerCase();
   var user = irc.user(prefix);
-  
+
   if(cmd=="-play") {
     var data = text.split(" ");
-    
+
     if(data[1]=="dots") {
       var string = "";
-      
+
       games.dots.playing= true;
       this.send('PRIVMSG', channel, ':Starting Dots..');
-      
+
       if(data.length>2) {
         games.dots.chr = data[2];
       } else {
         games.dots.chr = games.dots.chars[Math.round(Math.random(games.dots.chars.length))];
       }
-      
+
       games.dots.answer = Math.round(Math.random()*10)+5;
       for(var c=0;c<games.dots.answer;c++) {
         string+=games.dots.chr;
       }
-      
+
       this.send('PRIVMSG', channel, ':How many we got here? ( ' + string + ')');
-      
+
     }
   }
-  
+
   if(text.indexOf("too big")>-1) {
     this.send("PRIVMSG", channel, ":That's what she said");
   }
-  
+
   if(text.indexOf(games.dots.chr) && games.dots.playing) {
 
     console.log("trigged " + games.dots.chr)
@@ -121,8 +121,8 @@ client.addListener('PRIVMSG', function(prefix, channel, text) {
       }
     }
   }
-  
+
 
 });
 
-repl.start("logbot> ");
+repl.start("nodebot> ").context.client = client;
