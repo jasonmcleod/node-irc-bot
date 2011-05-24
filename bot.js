@@ -1,7 +1,6 @@
 var config = require('./config').config;
 var irc = require('./lib/irc');
 var client = new irc.Client(config.host, config.port)
-var repl = require('repl');
 
 var bot = {
   client: client,
@@ -59,7 +58,6 @@ var bot = {
     };
     this.client.addListener('PART', thisFn.fn);
   },
-
 
   send:function(text, channel) {
     if(typeof channel == 'undefined') { channel = config.channel }
