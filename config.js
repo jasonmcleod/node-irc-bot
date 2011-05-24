@@ -1,6 +1,8 @@
 exports.config = {
-  host: '',
+  host: 'irc.freenode.net',
   port: 6667,
-  user: '',
-  channel: '',
+  user: 'zorlord',
+  channel: '#charlottejs',
+  logUrl: 'http://nodejs.debuggable.com/',
+  logPath: 'log'
 };
