@@ -1,0 +1,1 @@
+Inspired by felixge's nodelog (https://github.com/felixge/nodelog/)
