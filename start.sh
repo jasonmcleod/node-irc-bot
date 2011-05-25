@@ -1,0 +1,1 @@
+supervisor -P bot.js
