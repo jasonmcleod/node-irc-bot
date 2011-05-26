@@ -1,49 +1,69 @@
-var sys = require('sys');
 var config = require('./config').config;
 var irc = require('./lib/irc');
-var fs = require('fs');
-var path = require('path');
-var repl = require('repl');
 var client = new irc.Client(config.host, config.port)
-var inChannel = false;
+var repl = require('repl');
 
-// setup configured client
-client.connect(config.user);
-// join client to server
-client.addListener('001', function() {
-  this.send('JOIN', config.channel);
-});
+var bot = {
+  client: client,
+  events: [],
 
+  connect:function() {
+    this.client.connect(config.user);
+    this.client.addListener('001', function() {
+      this.send('JOIN', config.channel);
+    });
+  },
 
-
-// default listener set
-client.addListener('JOIN', function(prefix) {
-  inChannel = true;
-  var user = irc.user(prefix);
-});
-
-client.addListener('PART', function(prefix) {
-  var user = irc.user(prefix);
-});
-
-client.addListener('DISCONNECT', function() {
-  puts('Disconnected, re-connect in 5s');
-  setTimeout(function() {
-    puts('Trying to connect again ...');
-
-    inChannel = false;
-    client.connect(config.user);
-    setTimeout(function() {
-      if (!inChannel) {
-        puts('Re-connect timeout');
-        client.disconnect();
-        client.emit('DISCONNECT', 'timeout');
+  listen:function(keyword, callback) {
+    var fn = bot.events[keyword] = {
+      id: keyword,
+      type: 'PRIVMSG',
+      fn: function (prefix, channel, text) {
+        var message = { prefix: prefix, channel: channel, text: text };
+        var regex = new RegExp('('+keyword+')','im');
+        if (regex.test(text)) {
+          callback(message);
+        }
       }
-    }, 5000);
-  }, 5000);
-});
+    };
+    this.client.addListener('PRIVMSG', fn.fn);
+  },
 
-client.addListener('PRIVMSG', function(prefix, channel, text) {
-});
+  ignore:function(id) {
+    type = this.events[id].type
+    this.client.removeListener(type, this.events[id].fn);
+  },
 
-repl.start("nodebot> ").context.client = client;
+  arrive:function(id, callback) {
+    var fn = bot.events[id] = {
+      id: id,
+      type: 'JOIN',
+      fn: function (prefix, channel, text) {
+        name = prefix.split('!')[0]
+        var message = { prefix: prefix, channel: channel, text: text, name: name };
+        callback(message);
+      }
+    };
+    this.client.addListener('JOIN', fn.fn);
+  },
+
+  depart:function(id, callback) {
+    var thisFn = bot.events[id] = {
+      id: id,
+      type: 'PART',
+      fn: function (prefix, channel, text) {
+        name = prefix.split('!')[0]
+        var message = { prefix: prefix, channel: channel, text: text, name: name };
+        callback(message);
+      }
+    };
+    this.client.addListener('PART', thisFn.fn);
+  },
+
+
+  send:function(text, channel) {
+    if(typeof channel == 'undefined') { channel = config.channel }
+    this.client.send('PRIVMSG', channel, ':' + text)
+  }
+}
+exports.bot = bot;
